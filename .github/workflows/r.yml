@@ -23,7 +23,8 @@ jobs:
       - uses: r-lib/actions/setup-r@master
       - name: Install shiny
         run: |
-          install.packages(c("shiny", "rsconnect"), type = "binary")
+          install.packages(c("shiny", "rsconnect"))
+        shell: Rscript {0}
       - name: Push to shiny.io
         run: |
           Rscript -e "rsconnect::setAccountInfo(name='nilofer', token=${{secrets.SHINYAPPS_TOKEN}}, secret=${{secrets.SHINYAPPS_SECRET}})"
