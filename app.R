@@ -6,7 +6,7 @@ palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
 library(shiny)
 
 ui <- fluidPage(
-  headerPanel('Iris k-means clustering - Group Project'),
+  headerPanel('Iris k-means clustering'),
   sidebarPanel(
     selectInput('xcol', 'X Variable', names(iris)),
     selectInput('ycol', 'Y Variable', names(iris),
