@@ -79,7 +79,7 @@ preds<- mutate(preds,"beer_beerid"=as.numeric(rownames(preds)))
 review_data[which(is.na(review_data$beer_abv)),"beer_abv"]<-ifelse(as.integer(preds$predict.m1..newdata...test.)>0,as.integer(preds$predict.m1..newdata...test.),review_data$beer_abv)
 
 
-rm(ctrl, m1, preds, test, train)
+rm(ctrl, m1, preds, test, abvdata, train)
 
 #shows how many missing values are in the beer_abv column after prediction model
 sum(is.na(review_data$beer_abv))
