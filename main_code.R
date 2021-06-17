@@ -15,7 +15,6 @@ getwd()
 setwd("/home/lammm/Final Project Team 3")
 review_data <- read.csv("beer_reviews.csv")
 
-
 #removes any reviews by users who only have 1 total review
 review_data <- review_data %>% group_by(review_profilename) %>% filter((n() > 1))
 #removes Brewery ID and Beer ID, which are not needed for this analysis
@@ -24,8 +23,9 @@ review_data <- subset(review_data, select = -c(brewery_id, review_time))
 #Code from prior groups final project submission. Creates a parent beer style column, and categories beers based on names in the sub-style column that already exists in the dataset
 review_data$Category<-"Ale"
 review_data$Category<-ifelse(str_detect(review_data$beer_style,regex("Lager|Pils|Pilsener|Pilsner",ignore_case = TRUE,dotall=TRUE)),"Lager",as.character(review_data$Category))
+review_data$Category<-ifelse(str_detect(review_data$beer_style,regex("Stout|Porter|Wee Heavy|",ignore_case = TRUE,dotall=TRUE)),"Dark Beer",as.character(review_data$Category))
 review_data$Category<-ifelse(str_detect(review_data$beer_style,regex("Low Alcohol",ignore_case = TRUE,dotall=TRUE)),"Low Alcohol Beer",as.character(review_data$Category))
-review_data$Category<-ifelse(str_detect(review_data$beer_style,regex(c("Other|Cider|Shandy|Fruit|Spiced|Saison"),ignore_case = TRUE,dotall=TRUE)),"Other",as.character(review_data$Category))
+review_data$Category<-ifelse(str_detect(review_data$beer_style,regex(c("Other|Cider|Shandy|Fruit|Spiced|Saison|Sour"),ignore_case = TRUE,dotall=TRUE)),"Other",as.character(review_data$Category))
 review_data$Category<-ifelse(is.na(review_data$Category),"Other",as.character(review_data$Category))
 review_data$Category<-ifelse(str_detect(review_data$beer_style,regex(c("Berliner|Weissbier|Doppel|Dunkel|lsch|Altbier|Gose|Witbier|Oktoberfest|bier|Tripel|Hefeweizen|Radler|Belgian|Bier|Maibock|Dubbel|Quad"),ignore_case = TRUE,dotall=TRUE)),"Traditional Germanic",as.character(review_data$Category))
 
@@ -79,14 +79,17 @@ preds<- mutate(preds,"beer_beerid"=as.numeric(rownames(preds)))
 review_data[which(is.na(review_data$beer_abv)),"beer_abv"]<-ifelse(as.integer(preds$predict.m1..newdata...test.)>0,as.integer(preds$predict.m1..newdata...test.),review_data$beer_abv)
 
 
-rm(ctrl, m1, preds, test, abvdata, train)
+rm(ctrl, m1, preds, test, train, abvdata)
 
 #shows how many missing values are in the beer_abv column after prediction model
 sum(is.na(review_data$beer_abv))
 
 
-#removes beer_ID from the dataset, since it is not needed after the prediction model, and writes the file into a CSV
+#removes beer_ID from the dataset, since it is not needed after the prediction modek, and writes the file into a CSV
 review_data <-dplyr::select(review_data,c(-"beer_beerid"))
-write.table(review_data,"beersComplete.csv",sep=",")
+write.table(review_data,"beersComplete.csv",sep=",", row.names=F)
+
+
+
 
 
