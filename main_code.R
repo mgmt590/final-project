@@ -65,12 +65,16 @@ abvdata <- predict(preProcValues, abvdata)
 
 rm(preProcValues)
 
-# intial test for predictive model accuracy. 
+# intial test for predictive model accuracy
 # complete_review_data <- abvdata[which(!is.na(abvdata["beer_abv"])),]
 # missing_review_data <- abvdata[which(is.na(abvdata["beer_abv"])),]
 # intrain <- createDataPartition(y=complete_review_data$beer_abv,p=.80,list=F)
 # train <- complete_review_data[intrain,]
 # test <- complete_review_data[-intrain,]
+
+#trains model with linear regression. This can take up to 5 minutes to run
+#ctrl <- trainControl(method="cv",number=5,classProbs = F, summaryFunction = defaultSummary, allowParallel=T)
+#m1<- train(beer_abv ~ . - beer_beerid, data = train, method = "lm", trControl = ctrl,na.action = na.pass)
 
 #results from the intial testing.
 # defaultSummary(data=data.frame(obs=train$beer_abv, pred=predict(m1, newdata=train))
