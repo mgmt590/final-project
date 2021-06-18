@@ -109,8 +109,6 @@ rm(ctrl, m1, preds, test, train)
 sum(is.na(review_data$beer_abv))
 
 
-#removes beer_ID from the dataset, since it is not needed after the prediction modek, and writes the file into a CSV
-review_data <-dplyr::select(review_data,c(-"beer_beerid"))
+#removes beer_ID, and the detailed review info from the dataset, since it is not needed after the prediction model, and writes the file into a CSV
+review_data <- subset(review_data, select = -c(beer_beerid, review_aroma, review_appearance, review_taste, review_palate))
 write.table(review_data,"beersComplete.csv",sep=",")
-
-
