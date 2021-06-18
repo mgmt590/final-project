@@ -44,7 +44,6 @@ abvdata <- sqldf("select beer_beerid, beer_style,  beer_abv, review_aroma, revie
 sum(is.na(review_data$beer_abv))
 
 
-
 #one-hot encodes factor variables. This takes 2ish minutes to run
 dummies <- dummyVars(beer_abv ~ .,data=abvdata)
 ex <- data.frame(predict(dummies, newdata=abvdata))
@@ -103,11 +102,10 @@ preds<- mutate(preds,"beer_beerid"=as.numeric(rownames(preds)))
 review_data[which(is.na(review_data$beer_abv)),"beer_abv"]<-ifelse(as.integer(preds$predict.m1..newdata...test.)>0,as.integer(preds$predict.m1..newdata...test.),review_data$beer_abv)
 
 
-rm(ctrl, m1, preds, test, train)
+rm(ctrl, m1, preds, abvdata, test, train)
 
 #shows how many missing values are in the beer_abv column after prediction model
 sum(is.na(review_data$beer_abv))
-
 
 #removes beer_ID, and the detailed review info from the dataset, since it is not needed after the prediction model, and writes the file into a CSV
 review_data <- subset(review_data, select = -c(beer_beerid, review_aroma, review_appearance, review_taste, review_palate))
