@@ -60,22 +60,26 @@ library(ggplot2)
 ggplot(data=mse_test, aes(x=x, y=V2)) + geom_point()
 
 
-#####calculate the beers into k groups (5), we can change the code in centers for the user sensitivity (5,6,10)
-quads = kmeans(x=beercluster, centers=5, iter.max=15)
+#####calculate the beers into k groups (5), we can change the code in centers for the user sensitivity (5,10,16)
+quads = kmeans(x=beercluster, centers=16, iter.max=15)
 bc = as.data.frame(quads$cluster)
-names(bc) = "cluster" 
+names(bc) = "cluster16" 
 beerchange = cbind(beerchange,bc)
 br = beerchange
 
+#export to scv
+write.csv(br,"beer_review_clustered", row.names = FALSE)
+
+
 ###BANGER BEERS
 
-user = 1 #HARDCODE, this will be the user 
-pref = "Other" ###Category
+user = 8 #HARDCODED, this will be the user 
+pref = "Traditional Germanic" ###Category
 
 library(dplyr)
 
 bang = br %>% 
-  filter(cluster == user, Category == pref, review_overall > 4) #, Categroy = pref
+  filter(cluster16 == user, Category == pref, review_overall > 4) #, Categroy = pref
 
 bang_list = floor(runif(10, min =1, max = nrow(bang)))
 
@@ -84,7 +88,7 @@ beer_rec
 
 ###RISKY BEERS
 
-user = 2 #HARDCODE, this will be the user 
+user = 2 #HARDCODED, this will be the user 
 pref = "Traditional Germanic" ###Category
 
 risk = br %>% 
@@ -93,4 +97,49 @@ risk = br %>%
 risk_list = floor(runif(10, min =1, max = nrow(risk)))
 
 beer_rec = risk[risk_list,]
+beer_rec
+
+#####get drunk & crunk
+
+user = 4 #HARDCODED
+pref = "Traditional Germanic"
+
+drunk = br %>%
+  filter(cluster16 == user, Category == pref, beer_abv > 7)
+
+drunk_list = floor(runif(10, min=1, max = nrow(drunk)))
+
+beer_rec = drunk[drunk_list,]
+if (is.na(beer_rec)){ #checks to see if anything is returned NA
+  print("lol good luck getting drunk")
+  drunk = br %>%
+    filter(beer_abv > 7)
+  
+  drunk_list = floor(runif(10, min=1, max = nrow(drunk)))
+  
+  beer_rec = drunk[drunk_list,]
+}
+beer_rec
+
+#####low abv
+user = 4 #HARDCODED
+pref = "Traditional Germanic"
+
+sober = br %>%
+  filter(cluster16 == user, Category == pref,  beer_abv < 4) #
+
+sober_list = floor(runif(10, min=1, max = nrow(sober)))
+
+beer_rec = sober[sober_list,]
+if (is.na(beer_rec)){ 
+  #checks to see if anything is returned NA
+  print("lol good luck staying sober")
+  sober = br %>%
+    filter(beer_abv < 4)
+  
+  sober_list = floor(runif(10, min=1, max = nrow(sober)))
+  
+  beer_rec = sober[sober_list,]
+}
+
 beer_rec
