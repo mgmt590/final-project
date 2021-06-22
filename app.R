@@ -1,42 +1,82 @@
-# 01-kmeans-app
-
-palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-  "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
-
 library(shiny)
+library(dplyr)
+
+setwd("/Users/nilofer/Downloads")
+br = read.csv("beer_review_clustered.csv")
 
 ui <- fluidPage(
-  headerPanel('Iris k-means clustering - Group Project'),
-  sidebarPanel(
-    selectInput('xcol', 'X Variable', names(iris)),
-    selectInput('ycol', 'Y Variable', names(iris),
-      selected = names(iris)[[2]]),
-    numericInput('clusters', 'Cluster count', 3,
-      min = 1, max = 9)
-  ),
-  mainPanel(
-    plotOutput('plot1')
-  )
-)
+    # inputs
+    selectizeInput(inputId='BeerNames',"Please add 3-5 of your favorite beers below", choices = NULL, multiple = TRUE),
+    selectInput(inputId="goal", label="What are you trying to achieve?", choices= c("Get Drunk", "Day Drink", "No Preference"), multiple=FALSE),
+    
+    # outputs
+    textOutput("result"),
+    textOutput("user"),
+    tableOutput("ChosenBeers")
 
-server <- function(input, output) {
+    )
+server <- function(input, output, session) {
+    updateSelectizeInput(session, 'BeerNames', choices = sort(as.character(sort(unique(br$beer_name)))), server = TRUE)
+    
+    output$result <- renderText({
+        paste("You chose", input$BeerNames)
+    })
+    
+    output$ChosenBeers <- renderTable ({
+        #br[which(br$beer_name %in% input$BeerNames),]
+        # br %>%
+        #     filter(br$beer_name == input$BeerNames)
+        user_beers <- input$BeerNames
+        chosen_clusters <- br %>%
+            filter(br$beer_name == user_beers) %>%
+            group_by(beer_name) %>%
+            distinct(cluster16)
+        
+        getmode <- function(v) {
+            uniqv <- unique(v)
+            uniqv[which.max(tabulate(match(v, uniqv)))]
+        }
+        
+        user_cluster <- getmode(chosen_clusters$cluster16)
+        
+        user_category <- br %>%
+            filter(br$beer_name == user_beers & br$cluster16 == user_cluster) %>%
+            distinct(Category)
+        
+        user = as.numeric(user_cluster)
+        pref = as.character(user_category)
+        bang = br %>% 
+            filter(cluster16 == user, Category == pref, review_overall >= 3) #, Categroy = pref
+        
+        bang_list = floor(runif(10, min =1, max = nrow(bang)))
+        
+        beer_rec = bang[bang_list,]
+    })
 
-  selectedData <- reactive({
-    iris[, c(input$xcol, input$ycol)]
-  })
 
-  clusters <- reactive({
-    kmeans(selectedData(), input$clusters)
-  })
 
-  output$plot1 <- renderPlot({
-    par(mar = c(5.1, 4.1, 0, 1))
-    plot(selectedData(),
-         col = clusters()$cluster,
-         pch = 20, cex = 3)
-    points(clusters()$centers, pch = 4, cex = 4, lwd = 4)
-  })
+    output$user <- renderText({
+        user_beers <- input$BeerNames
+        chosen_clusters <- br %>%
+            filter(br$beer_name == user_beers) %>%
+            group_by(beer_name) %>%
+            distinct(cluster16)
+        
+        getmode <- function(v) {
+            uniqv <- unique(v)
+            uniqv[which.max(tabulate(match(v, uniqv)))]
+        }
+        
+        user_cluster <- getmode(chosen_clusters$cluster16)
+        
+        user_category <- br %>%
+            filter(br$beer_name == user_beers & br$cluster16 == user_cluster) %>%
+            distinct(Category)
+        
+        user = as.numeric(user_cluster)
+        pref = as.character(user_category)
+        paste("Your cluster", user, "Your pref", pref)
+    })
 
 }
-
-shinyApp(ui = ui, server = server)
+shinyApp(ui, server)
