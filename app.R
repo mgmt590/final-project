@@ -16,35 +16,42 @@ ui <- fluidPage(
 
     )
 server <- function(input, output, session) {
+    # render the beer choices in the server code for efficiency
     updateSelectizeInput(session, 'BeerNames', choices = sort(as.character(sort(unique(br$beer_name)))), server = TRUE)
     
+    # render the selections
     output$result <- renderText({
         paste("You chose", input$BeerNames)
     })
     
+    # render the bangers tables
     output$ChosenBeers <- renderTable ({
-        #br[which(br$beer_name %in% input$BeerNames),]
-        # br %>%
-        #     filter(br$beer_name == input$BeerNames)
+        # get names of the beers and find the distinct clusters each beer is in
         user_beers <- input$BeerNames
         chosen_clusters <- br %>%
             filter(br$beer_name == user_beers) %>%
             group_by(beer_name) %>%
             distinct(cluster16)
         
+        # define a mode function
         getmode <- function(v) {
             uniqv <- unique(v)
             uniqv[which.max(tabulate(match(v, uniqv)))]
         }
         
+        # get the mode of the distinct clusters and assign the user to that cluster
         user_cluster <- getmode(chosen_clusters$cluster16)
         
+        # assign the user to a category based off the beers they chose and the cluster they are in
         user_category <- br %>%
             filter(br$beer_name == user_beers & br$cluster16 == user_cluster) %>%
             distinct(Category)
         
+        # coerce the cluster and category to correct types
         user = as.numeric(user_cluster)
         pref = as.character(user_category)
+        
+        # determine the banger recommendations based off of user cluster and category
         bang = br %>% 
             filter(cluster16 == user, Category == pref, review_overall >= 3) #, Categroy = pref
         
