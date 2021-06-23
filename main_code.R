@@ -158,7 +158,7 @@ beercluster_b = beerchange['beer_abv']
 beercluster = cbind(beercluster_a,beercluster_b)
 
 
-
+rm(beercluster_a, beercluster_b)
 
 ####K test for optimal outputs
 mse_test = data.frame()
@@ -207,7 +207,7 @@ br = beerchange
 
 
 #export to csv
-write.table(br,"beer_review_clustered.csv", row.names = FALSE, sep=",")
+write.csv(br,"beer_review_clustered.csv", row.names = FALSE,)
 
 
 
@@ -317,3 +317,150 @@ if (is.na(beer_rec)){
   
   beer_rec = sober[sober_list,]
 }
+
+#Shiny
+
+library(shiny)
+library(dplyr)
+library(bslib)
+
+br = read.csv("beer_review_clustered.csv")
+
+ui <- fluidPage(
+  #adds color teheme
+  theme = bs_theme(version=4,bootswatch = "minty"),
+  
+  titlePanel("Beer Find-R"),
+  
+  #inputs on left hand side
+  sidebarPanel(
+    selectizeInput(inputId='BeerNames',"Please add 3-5 of your favorite beers below", choices = NULL, multiple = TRUE),
+    selectInput(inputId="goal", label="What are you trying to achieve?", choices= c("Get Drunk", "Day Drink", "Drink something within my comfort zone", "Try a new flavor"), multiple=FALSE),
+    textInput(inputId="zip", label="What is your zip code?"),
+    actionButton("run","Show Reccomended Beers"),
+  ),
+  #output panel for different tabs
+  mainPanel(
+    tabsetPanel(type="tabs",
+                tabPanel("Beer Reccomendations", textOutput("result"),textOutput("user"),tableOutput("ChosenBeers")),
+                tabPanel("Help Finding Beer")
+    )
+  )
+  
+)
+server <- function(input, output, session) {
+  # render the beer choices in the server code for efficiency
+  updateSelectizeInput(session, 'BeerNames', choices = sort(as.character(sort(unique(br$beer_name)))), server = TRUE)
+  
+  # render the selections
+  output$result <- renderText({
+    paste("You chose", input$BeerNames)
+  })
+  
+  # render the bangers tables
+  observeEvent(input$run,{
+    output$ChosenBeers <- renderTable ({
+      # get names of the beers and find the distinct clusters each beer is in
+      user_beers <- input$BeerNames
+      chosen_clusters <- br %>%
+        filter(br$beer_name == user_beers) %>%
+        group_by(beer_name) %>%
+        distinct(cluster16)
+      
+      # define a mode function
+      getmode <- function(v) {
+        uniqv <- unique(v)
+        uniqv[which.max(tabulate(match(v, uniqv)))]
+      }
+      
+      # get the mode of the distinct clusters and assign the user to that cluster
+      user_cluster <- getmode(chosen_clusters$cluster16)
+      
+      # assign the user to a category based off the beers they chose and the cluster they are in
+      user_category <- br %>%
+        filter(br$beer_name == user_beers & br$cluster16 == user_cluster) %>%
+        distinct(Category)
+      
+      # coerce the cluster and category to correct types
+      user = as.numeric(user_cluster)
+      pref = as.character(user_category)
+      
+      # determine the banger recommendations based off of user cluster and category
+      if (input$goal == "Drink something within my comfort zone"){
+        bang = br %>% 
+          filter(cluster16 == user, Category == pref, review_overall >= 3) #, Categroy = pref
+        
+        bang_list = floor(runif(10, min =1, max = nrow(bang)))
+        
+        beer_rec = bang[bang_list,]
+      } else if (input$goal == "Try a new flavor"){
+        risk = br %>% 
+          filter(cluster16 == user, Category != pref, review_overall > 3) #, Categroy = pref
+        
+        risk_list = floor(runif(10, min =1, max = nrow(risk)))
+        
+        beer_rec = risk[risk_list,]
+      } else if (input$goal == "Get Drunk"){
+        drunk = br %>%
+          filter(cluster16 == user, Category == pref, beer_abv > 7)
+        
+        drunk_list = floor(runif(10, min=1, max = nrow(drunk)))
+        
+        beer_rec = drunk[drunk_list,]
+        if (is.na(beer_rec)){ #checks to see if anything is returned NA
+          print("lol good luck getting drunk")
+          drunk = br %>%
+            filter(beer_abv > 7)
+          
+          drunk_list = floor(runif(10, min=1, max = nrow(drunk)))
+          
+          beer_rec = drunk[drunk_list,]
+        } else {
+          sober = br %>%
+            filter(cluster16 == user, Category == pref,  beer_abv < 4) #
+          
+          sober_list = floor(runif(10, min=1, max = nrow(sober)))
+          
+          beer_rec = sober[sober_list,]
+          if (is.na(beer_rec)){ 
+            #checks to see if anything is returned NA
+            print("lol good luck staying sober")
+            sober = br %>%
+              filter(beer_abv < 4)
+            
+            sober_list = floor(runif(10, min=1, max = nrow(sober)))
+            
+            beer_rec = sober[sober_list,]
+          }
+        }
+      }
+      
+    })
+    
+    
+    
+    output$user <- renderText({
+      user_beers <- input$BeerNames
+      chosen_clusters <- br %>%
+        filter(br$beer_name == user_beers) %>%
+        group_by(beer_name) %>%
+        distinct(cluster16)
+      
+      getmode <- function(v) {
+        uniqv <- unique(v)
+        uniqv[which.max(tabulate(match(v, uniqv)))]
+      }
+      
+      user_cluster <- getmode(chosen_clusters$cluster16)
+      
+      user_category <- br %>%
+        filter(br$beer_name == user_beers & br$cluster16 == user_cluster) %>%
+        distinct(Category)
+      
+      user = as.numeric(user_cluster)
+      pref = as.character(user_category)
+      paste("Your cluster", user, "Your pref", pref)
+    })
+  })
+}
+shinyApp(ui, server)
