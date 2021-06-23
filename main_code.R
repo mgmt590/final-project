@@ -321,11 +321,13 @@ if (is.na(beer_rec)){
 library(shiny)
 library(dplyr)
 library(bslib)
-library(png)
+library(data.table)
+library(ggmap)
 
 br = read.csv("beer_review_clustered.csv")
 
 ui <- fluidPage(
+  
   #adds color teheme
   theme = bs_theme(version=4,bootswatch = "minty"),
   
@@ -472,7 +474,7 @@ server <- function(input, output, session) {
         stop("Google cannot find beers in your area")
       }
       
-      library(data.table)
+      
       rm(beer.details)
       beer.details <- rbindlist(lapply(beer_address$results, function(x) data.frame(as.numeric(x$geometry$location$lat[[1]]),
                                                                                     as.numeric(x$geometry$location$lng[[1]]),
@@ -481,7 +483,6 @@ server <- function(input, output, session) {
       
       setnames(beer.details, c("Latitude","Longitude","Name","Address"))
       
-      library(ggmap)
       register_google(key = key)
       map <- get_map(location = c(longitude,latitude), zoom = 14, maptype = "roadmap", scale = 2)
       ggmap(map) +
