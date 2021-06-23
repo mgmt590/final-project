@@ -317,38 +317,62 @@ if (is.na(beer_rec)){
 }
 
 #Shiny
-
 library(shiny)
+library(shinydashboard)
 library(dplyr)
-library(bslib)
 library(data.table)
 library(ggmap)
+
 
 br = read.csv("beer_review_clustered.csv")
 
 ui <- fluidPage(
+  dashboardPage(skin="red",
   
-  #adds color teheme
-  theme = bs_theme(version=4,bootswatch = "minty"),
-  
-  titlePanel("Beer Find-R"),
+  dashboardHeader(
+    title= span(
+      "Beer Find-R",
+      style = "font-family: Tahoma; font-weight: bold"
+    ),
+    titleWidth = "200px"
+  ),  
   
   #inputs on left hand side
-  sidebarPanel(
-    selectizeInput(inputId='BeerNames',"Please add 3-5 of your favorite beers below", choices = NULL, multiple = TRUE),
-    selectInput(inputId="goal", label="What are you trying to achieve?", choices= c("Get Drunk", "Day Drink", "Drink something within my comfort zone", "Try a new flavor"), multiple=FALSE),
-    actionButton("run","Show Reccomended Beers"),
-    textInput(inputId="zip", label="What is your zip code?"),
-    actionButton("map","Find Beers Near Me")
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Beer Reccomendations", tabName = "beers", icon = icon("th-list")),
+      menuItem("Find Beer", tabName = "map", icon = icon("map-marker"))
+    )
+  
   ),
   #output panel for different tabs
-  mainPanel(
-    tabsetPanel(type="tabs",
-                tabPanel("Beer Reccomendations",tableOutput("ChosenBeers")),
-                tabPanel("Help Finding Beer", plotOutput("gmap"))
+  dashboardBody(
+    tabItems(
+      tabItem(tabName="beers",
+        fluidRow(
+          box(title="Please expand viewing window for best experience", tableOutput("ChosenBeers")),
+          box(
+            title="Beer Inputs",
+            selectizeInput(inputId='BeerNames',"Please add 2-3 of your favorite beers below", choices = NULL, multiple = TRUE),
+            selectInput(inputId="goal", label="What are you trying to achieve?", choices= c("Drink something within my comfort zone", "Try a new flavor", "Get Drunk", "Day Drink"), multiple=FALSE),
+            actionButton("run","Show Reccomended Beers")
+          )
+        )  
+      ),
+      
+      tabItem(tabName="map", 
+        fluidRow(
+          box(title="Please expand viewing window for best experience", plotOutput("gmap")),
+          box(
+            title="Help Finding Beer- Please wait 5-10 second after clicking Find Beers button for map output",
+            textInput(inputId="zip", label="What is your zip code?"),
+            actionButton("map","Find Beers Near Me")
+          )
+        )  
+      )
     )
   )
-  
+  )
 )
 server <- function(input, output, session) {
   # render the beer choices in the server code for efficiency
