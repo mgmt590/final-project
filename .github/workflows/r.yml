@@ -28,4 +28,4 @@ jobs:
       - name: Push to shiny.io
         run: |
           Rscript -e "rsconnect::setAccountInfo(name='nilofer', token=${{secrets.SHINYAPPS_TOKEN}}, secret=${{secrets.SHINYAPPS_SECRET}})"
-          Rscript -e "rsconnect::deployApp(appName = 'Beer Find-R')"
+          Rscript -e "rsconnect::deployApp(appName = 'BeerFind-R')"
