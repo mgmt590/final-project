@@ -23,9 +23,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-r@master
       - name: Install shiny
+        env: 
+          GMAPS: ${{ secrets.GMAPS }}
         run: |
           Rscript -e 'install.packages(c("shiny", "rsconnect", "plyr", "dplyr", "bslib", "data.table", "ggmap", "ggplot2", "RMariaDB", "caret", "sqldf", "stringr", "shinydashboard"))'
       - name: Push to shiny.io
+        env: 
+          GMAPS: ${{ secrets.GMAPS }}
         run: |
           Rscript -e "rsconnect::setAccountInfo(name='nilofer', token=${{secrets.SHINYAPPS_TOKEN}}, secret=${{secrets.SHINYAPPS_SECRET}})"
           Rscript -e "rsconnect::deployApp(appName = 'BeerFind-R')"
