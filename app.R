@@ -155,7 +155,8 @@ server <- function(input, output, session) {
   
   observeEvent(input$map,{
     output$gmap <- renderPlot({
-      key = ${{secrets.GMAPS}}
+      # key = ${{secrets.GMAPS}}
+      key <- Sys.getenv("GMAPS")
       
       postcode = input$zip
       
