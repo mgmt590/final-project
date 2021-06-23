@@ -1,3 +1,5 @@
+# install.packages(c("shiny", "dplyr", "bslib", "data.table", "ggmap"))
+library(shiny)
 library(ggplot2)
 library(plyr)
 library(dplyr)
