@@ -1,4 +1,4 @@
-install.packages(c("shiny", "dplyr", "bslib", "data.table", "ggmap"))
+# install.packages(c("shiny", "dplyr", "bslib", "data.table", "ggmap"))
 library(shiny)
 library(dplyr)
 library(bslib)
