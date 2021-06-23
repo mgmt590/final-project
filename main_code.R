@@ -1,3 +1,4 @@
+install.packages(c("shiny", "plyr", "dplyr", "bslib", "data.table", "ggmap", "ggplot2", "RMariaDB", "caret", "sqldf", "stringr", "shinydashboard"))
 library(ggplot2)
 library(plyr)
 library(dplyr)
@@ -6,6 +7,9 @@ library(RMariaDB)
 library(caret)
 library(sqldf)
 library(stringr)
+library(shiny)
+library(shinydashboard)
+
 
 # set memory limits
 options(java.parameters = "-Xmx64048m") # 64048 is 64 GB
@@ -172,7 +176,7 @@ for (x in 1:15){
 
 
 #####look for the elbow
-library(ggplot2)
+
 ggplot(data=mse_test, aes(x=x, y=V2)) + geom_point()
 
 
@@ -317,11 +321,7 @@ if (is.na(beer_rec)){
 }
 
 #Shiny
-library(shiny)
-library(shinydashboard)
-library(dplyr)
-library(data.table)
-library(ggmap)
+
 
 
 br = read.csv("beer_review_clustered.csv")
